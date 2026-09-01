@@ -17,6 +17,53 @@ const defaultWorkoutPlan = {
   ],
 };
 
+const day2WorkoutPlan = {
+  name: 'Day 2',
+  exercises: [
+    { id: 'day2-warmup', label: 'Treadmill warm-up — 7 min (walk 2 min, easy jog 3 min, walk 1 min, easy jog 1 min)', completed: false, weight: '' },
+    { id: 'day2-intervals', label: 'Treadmill intervals — 8 rounds (run 1 min at RPE 8; walk/jog 1 min at RPE 3–4)', completed: false, weight: '' },
+    { id: 'day2-db-press', label: 'Incline dumbbell press — 3 × 10–12', completed: false, weight: '' },
+    { id: 'day2-pushups', label: 'Push-ups — 3 sets', completed: false, weight: '' },
+    { id: 'day2-crunch', label: 'Cable crunch — 3 × 15', completed: false, weight: '' },
+    { id: 'day2-knee-raise', label: 'Hanging knee raise or captain\'s-chair raise — 3 × 10–12', completed: false, weight: '' },
+    { id: 'day2-pallof', label: 'Pallof press — 3 × 12 per side', completed: false, weight: '' },
+    { id: 'day2-cooldown', label: 'Cooldown — 5 min easy walk + calves/hip-flexor stretch', completed: false, weight: '' },
+  ],
+};
+
+const day3WorkoutPlan = {
+  name: 'Day 3',
+  exercises: [
+    { id: 'day3-warmup', label: 'Warm-up — 6 min (brisk walk 2 min, easy jog 2 min, walk 2 min)', completed: false, weight: '' },
+    { id: 'day3-squat', label: 'Back squat or leg press — 4 × 8–10', completed: false, weight: '' },
+    { id: 'day3-rdl', label: 'Romanian deadlift — 4 × 8–10', completed: false, weight: '' },
+    { id: 'day3-split-squat', label: 'Bulgarian split squat — 3 × 10 per leg', completed: false, weight: '' },
+    { id: 'day3-hamstring-curl', label: 'Seated or lying hamstring curl — 3 × 12', completed: false, weight: '' },
+    { id: 'day3-walking-lunge', label: 'Walking lunge — 2 × 12 per leg', completed: false, weight: '' },
+    { id: 'day3-side-plank', label: 'Side plank — 3 × 30–40 sec per side', completed: false, weight: '' },
+    { id: 'day3-dead-bug', label: 'Dead bug — 3 × 10 per side', completed: false, weight: '' },
+    { id: 'day3-incline-walk', label: 'Incline treadmill walk — 12–15 min', completed: false, weight: '' },
+  ],
+};
+
+function getPlannedWorkoutForDate(date) {
+  const dateKey = formatDateKey(new Date(date));
+
+  if (dateKey === '2026-09-01') {
+    return defaultWorkoutPlan;
+  }
+
+  if (dateKey === '2026-09-02') {
+    return day2WorkoutPlan;
+  }
+
+  if (dateKey === '2026-09-03') {
+    return day3WorkoutPlan;
+  }
+
+  return null;
+}
+
 function normalizeExercise(exercise) {
   if (typeof exercise === 'string') {
     return {
@@ -36,11 +83,14 @@ function normalizeExercise(exercise) {
 }
 
 function createDefaultCalendarEntry(date = new Date()) {
+  const dateKey = formatDateKey(date);
+  const plannedWorkout = getPlannedWorkoutForDate(dateKey);
+
   return {
-    workoutName: defaultWorkoutPlan.name,
-    exercises: defaultWorkoutPlan.exercises.map(normalizeExercise),
+    workoutName: plannedWorkout ? plannedWorkout.name : '',
+    exercises: plannedWorkout ? plannedWorkout.exercises.map(normalizeExercise) : [],
     completed: false,
-    date: formatDateKey(date),
+    date: dateKey,
   };
 }
 
@@ -54,9 +104,21 @@ const defaultState = {
   calendar: {
     [formatDateKey(new Date('2026-09-01T00:00:00'))]: {
       workoutName: defaultWorkoutPlan.name,
-      exercises: [...defaultWorkoutPlan.exercises],
+      exercises: defaultWorkoutPlan.exercises.map(normalizeExercise),
       completed: false,
       date: formatDateKey(new Date('2026-09-01T00:00:00')),
+    },
+    [formatDateKey(new Date('2026-09-02T00:00:00'))]: {
+      workoutName: day2WorkoutPlan.name,
+      exercises: day2WorkoutPlan.exercises.map(normalizeExercise),
+      completed: false,
+      date: formatDateKey(new Date('2026-09-02T00:00:00')),
+    },
+    [formatDateKey(new Date('2026-09-03T00:00:00'))]: {
+      workoutName: day3WorkoutPlan.name,
+      exercises: day3WorkoutPlan.exercises.map(normalizeExercise),
+      completed: false,
+      date: formatDateKey(new Date('2026-09-03T00:00:00')),
     },
   },
 };
@@ -317,14 +379,13 @@ function ensureCalendarEntry(dateKey) {
     state.calendar = {};
   }
 
-  const plannedStart = formatDateKey(new Date('2026-09-01T00:00:00'));
-  const isStartDate = dateKey === plannedStart;
+  const plannedWorkout = getPlannedWorkoutForDate(dateKey);
 
-  if (!state.calendar[dateKey] && isStartDate) {
+  if (!state.calendar[dateKey] && plannedWorkout) {
     state.calendar[dateKey] = createDefaultCalendarEntry(new Date(dateKey));
   }
 
-  if (!state.calendar[dateKey] && !isStartDate) {
+  if (!state.calendar[dateKey] && !plannedWorkout) {
     state.calendar[dateKey] = {
       workoutName: '',
       exercises: [],

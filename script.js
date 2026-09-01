@@ -1,5 +1,8 @@
 const STORAGE_KEY = 'workoutTrackerData';
-const hydrationGoal = 2000;
+const hydrationGoalMinOz = 90;
+const hydrationGoalMaxOz = 110;
+const hydrationGoal = 96;
+const hydrationGoalMl = Math.round(hydrationGoal * 29.5735);
 const weddingGoalDate = new Date('2026-09-19T00:00:00');
 
 const defaultWorkoutPlan = {
@@ -46,6 +49,21 @@ const day3WorkoutPlan = {
   ],
 };
 
+const day4WorkoutPlan = {
+  name: 'Day 4',
+  exercises: [
+    { id: 'day4-warmup', label: 'Treadmill warm-up — 5 min (walk 1 min, easy jog 3 min, walk 1 min)', completed: false, weight: '' },
+    { id: 'day4-chest-press', label: 'Machine chest press — 4 × 8–10', completed: false, weight: '' },
+    { id: 'day4-incline-db-press', label: 'Incline dumbbell press — 3 × 10', completed: false, weight: '' },
+    { id: 'day4-cable-fly', label: 'Cable fly or pec deck — 3 × 12–15', completed: false, weight: '' },
+    { id: 'day4-seated-row', label: 'Seated cable row — 4 × 10–12', completed: false, weight: '' },
+    { id: 'day4-lat-pulldown', label: 'Lat pulldown — 3 × 10–12', completed: false, weight: '' },
+    { id: 'day4-face-pull', label: 'Face pull — 2 × 15', completed: false, weight: '' },
+    { id: 'day4-steady-run', label: 'Steady treadmill run — 15–20 min', completed: false, weight: '' },
+    { id: 'day4-cooldown', label: 'Cooldown — 3–5 min walk', completed: false, weight: '' },
+  ],
+};
+
 function getPlannedWorkoutForDate(date) {
   const dateKey = formatDateKey(typeof date === 'string' ? parseDateKey(date) : new Date(date));
 
@@ -59,6 +77,10 @@ function getPlannedWorkoutForDate(date) {
 
   if (dateKey === '2026-09-03') {
     return day3WorkoutPlan;
+  }
+
+  if (dateKey === '2026-09-04') {
+    return day4WorkoutPlan;
   }
 
   return null;
@@ -120,6 +142,12 @@ const defaultState = {
       completed: false,
       date: formatDateKey(new Date('2026-09-03T00:00:00')),
     },
+    [formatDateKey(new Date('2026-09-04T00:00:00'))]: {
+      workoutName: day4WorkoutPlan.name,
+      exercises: day4WorkoutPlan.exercises.map(normalizeExercise),
+      completed: false,
+      date: formatDateKey(new Date('2026-09-04T00:00:00')),
+    },
   },
 };
 
@@ -171,7 +199,7 @@ const elements = {
 
 function normalizeCalendarState(calendar) {
   const normalized = {};
-  const planDates = ['2026-09-01', '2026-09-02', '2026-09-03'];
+  const planDates = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04'];
 
   planDates.forEach((dateKey) => {
     const existing = calendar && calendar[dateKey];
@@ -259,17 +287,30 @@ function updateWeddingCountdown() {
   weddingCountdown.textContent = `${daysLeft} days`;
 }
 
-function waterToLiters(ml) {
-  return (ml / 1000).toFixed(1);
+function ozToMl(oz) {
+  return oz * 29.5735;
+}
+
+function formatOunces(ozValue) {
+  if (ozValue >= 10) {
+    return `${Math.round(ozValue)} oz`;
+  }
+
+  return `${Number(ozValue).toFixed(1).replace(/\.0$/, '')} oz`;
+}
+
+function getTodaysWaterEntries() {
+  const todayKey = formatDateKey(new Date());
+  return state.water.filter((entry) => (entry.date || todayKey) === todayKey);
 }
 
 function getHydrationProgress() {
-  const total = state.water.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  const total = getTodaysWaterEntries().reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
   return Math.min((total / hydrationGoal) * 100, 100);
 }
 
 function renderSummary() {
-  const totalWater = state.water.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  const totalWater = getTodaysWaterEntries().reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
   const totalWorkoutCalories = state.workouts.reduce((sum, entry) => sum + Number(entry.calories || 0), 0);
   const mealCount = state.meals.length;
   const workoutCount = state.workouts.length;
@@ -277,17 +318,17 @@ function renderSummary() {
 
   const progressPct = Math.min((totalWater / hydrationGoal) * 100, 100);
 
-  elements.waterTotal.textContent = `${waterToLiters(totalWater)} L`;
+  elements.waterTotal.textContent = formatOunces(totalWater);
   elements.waterProgressLabel.textContent = `${Math.round(progressPct)}%`;
   elements.hydrationProgress.style.width = `${progressPct}%`;
-  elements.hydrationGoalText.textContent = `${waterToLiters(totalWater)} L / ${waterToLiters(hydrationGoal)} L`;
+  elements.hydrationGoalText.textContent = `${hydrationGoalMinOz}–${hydrationGoalMaxOz} oz / day`;
   elements.mealCount.textContent = mealCount;
   elements.workoutCount.textContent = workoutCount;
   elements.weightValue.textContent = `${latestWeight} lb`;
   elements.caloriesBurned.textContent = totalWorkoutCalories;
   elements.mealSummary.textContent = `${mealCount} meal${mealCount === 1 ? '' : 's'}`;
   elements.workoutSummary.textContent = `${workoutCount} session${workoutCount === 1 ? '' : 's'}`;
-  elements.waterSummary.textContent = `${state.water.length} ${state.water.length === 1 ? 'glass' : 'glasses'}`;
+  elements.waterSummary.textContent = `${getTodaysWaterEntries().length} ${getTodaysWaterEntries().length === 1 ? 'entry' : 'entries'}`;
   elements.weightSummary.textContent = `${state.weights.length} ${state.weights.length === 1 ? 'entry' : 'entries'}`;
 }
 
@@ -386,9 +427,9 @@ function renderWater() {
     .reverse()
     .forEach((entry) => {
       const item = createEntryRow({
-        name: `${entry.amount} ml`,
+        name: `${formatOunces(entry.amount)}`,
         details: `Logged at ${entry.time}`,
-        tag: `${(entry.amount / 1000).toFixed(1)} L`,
+        tag: `${formatOunces(entry.amount)}`,
         onDelete: () => {
           state.water = state.water.filter((waterEntry) => waterEntry.id !== entry.id);
           saveState();
@@ -610,6 +651,7 @@ waterForm.addEventListener('submit', (event) => {
   state.water.push({
     id: crypto.randomUUID(),
     amount,
+    date: formatDateKey(new Date()),
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   });
 
@@ -644,6 +686,7 @@ document.querySelectorAll('.quick-water').forEach((button) => {
     state.water.push({
       id: crypto.randomUUID(),
       amount,
+      date: formatDateKey(new Date()),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
 

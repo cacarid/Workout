@@ -70,8 +70,8 @@
 
         <section class="progress-wrap card">
           <div class="progress-head">
-            <h2>Hydration goal</h2>
-            <span id="hydrationGoalText">2.0 L / 2.0 L</span>
+            <h2>Daily hydration goal</h2>
+            <span id="hydrationGoalText">90–110 oz / day</span>
           </div>
           <div class="progress-bar">
             <div class="progress-fill" id="hydrationProgress"></div>
@@ -140,14 +140,14 @@
             <h2>Add water</h2>
             <form id="waterForm">
               <label>
-                Amount (ml)
-                <input type="number" name="waterAmount" min="50" step="50" placeholder="250" required />
+                Amount (oz)
+                <input type="number" name="waterAmount" min="5" step="1" placeholder="8" required />
               </label>
 
               <div class="quick-water-buttons">
-                <button type="button" class="quick-water" data-amount="250">+250ml</button>
-                <button type="button" class="quick-water" data-amount="500">+500ml</button>
-                <button type="button" class="quick-water" data-amount="750">+750ml</button>
+                <button type="button" class="quick-water" data-amount="8">+8 oz</button>
+                <button type="button" class="quick-water" data-amount="16">+16 oz</button>
+                <button type="button" class="quick-water" data-amount="24">+24 oz</button>
               </div>
 
               <button type="submit" class="primary-btn">Add water</button>

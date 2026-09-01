@@ -47,7 +47,7 @@ const day3WorkoutPlan = {
 };
 
 function getPlannedWorkoutForDate(date) {
-  const dateKey = formatDateKey(new Date(date));
+  const dateKey = formatDateKey(typeof date === 'string' ? parseDateKey(date) : new Date(date));
 
   if (dateKey === '2026-09-01') {
     return defaultWorkoutPlan;
@@ -124,8 +124,15 @@ const defaultState = {
 };
 
 const state = loadState();
-let currentMonthDate = new Date();
-let currentSelectedDate = formatDateKey(new Date());
+let currentMonthDate = parseDateKey('2026-09-01');
+let currentSelectedDate = '2026-09-01';
+
+if (!state.calendar['2026-09-01']) {
+  state.calendar = structuredClone(defaultState.calendar);
+  currentSelectedDate = '2026-09-01';
+  currentMonthDate = parseDateKey('2026-09-01');
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
 const todayDate = document.getElementById('todayDate');
 const weddingCountdown = document.getElementById('weddingCountdown');
@@ -162,6 +169,34 @@ const elements = {
   weightSummary: document.getElementById('weightSummary'),
 };
 
+function normalizeCalendarState(calendar) {
+  const normalized = {};
+  const planDates = ['2026-09-01', '2026-09-02', '2026-09-03'];
+
+  planDates.forEach((dateKey) => {
+    const existing = calendar && calendar[dateKey];
+    const plannedWorkout = getPlannedWorkoutForDate(dateKey);
+
+    if (plannedWorkout) {
+      normalized[dateKey] = existing && Array.isArray(existing.exercises)
+        ? {
+            ...existing,
+            workoutName: plannedWorkout.name,
+            exercises: existing.exercises.map(normalizeExercise),
+            date: dateKey,
+          }
+        : {
+            workoutName: plannedWorkout.name,
+            exercises: plannedWorkout.exercises.map(normalizeExercise),
+            completed: false,
+            date: dateKey,
+          };
+    }
+  });
+
+  return normalized;
+}
+
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) {
@@ -170,12 +205,19 @@ function loadState() {
 
   try {
     const parsed = JSON.parse(saved);
+    const cleanedCalendar = normalizeCalendarState(parsed.calendar && typeof parsed.calendar === 'object' ? parsed.calendar : {});
+    const hasPlannedStart = Object.prototype.hasOwnProperty.call(cleanedCalendar, '2026-09-01');
+
+    if (!hasPlannedStart) {
+      return structuredClone(defaultState);
+    }
+
     return {
       meals: Array.isArray(parsed.meals) ? parsed.meals : [],
       workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
       water: Array.isArray(parsed.water) ? parsed.water : [],
       weights: Array.isArray(parsed.weights) ? parsed.weights : [{ id: crypto.randomUUID(), value: 195, time: '05:30' }],
-      calendar: parsed.calendar && typeof parsed.calendar === 'object' ? parsed.calendar : { [formatDateKey(new Date())]: createDefaultCalendarEntry() },
+      calendar: cleanedCalendar,
     };
   } catch {
     return structuredClone(defaultState);
@@ -187,7 +229,15 @@ function saveState() {
 }
 
 function formatDateKey(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateKey(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function formatDate() {
@@ -382,7 +432,7 @@ function ensureCalendarEntry(dateKey) {
   const plannedWorkout = getPlannedWorkoutForDate(dateKey);
 
   if (!state.calendar[dateKey] && plannedWorkout) {
-    state.calendar[dateKey] = createDefaultCalendarEntry(new Date(dateKey));
+    state.calendar[dateKey] = createDefaultCalendarEntry(parseDateKey(dateKey));
   }
 
   if (!state.calendar[dateKey] && !plannedWorkout) {
@@ -443,7 +493,8 @@ function openCalendarDay(dateKey) {
   currentSelectedDate = dateKey;
   const entry = ensureCalendarEntry(dateKey);
 
-  const labelText = entry.workoutName ? `${new Date(dateKey).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${entry.workoutName}` : `${new Date(dateKey).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · No workout planned`;
+  const displayDate = parseDateKey(dateKey);
+  const labelText = entry.workoutName ? `${displayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${entry.workoutName}` : `${displayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · No workout planned`;
   selectedWorkoutLabel.textContent = labelText;
   selectedWorkoutItems.innerHTML = '';
 

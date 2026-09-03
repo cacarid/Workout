@@ -37,13 +37,13 @@
 
       <main class="dashboard">
         <section class="summary-grid">
-          <article class="card stat-card water-card">
+          <article class="card stat-card water-card log-launcher" data-log="water" role="button" tabindex="0" aria-label="Open water log">
             <div class="card-label">Water</div>
             <div class="stat-value" id="waterTotal">0 L</div>
             <div class="stat-meta"><span id="waterProgressLabel">0%</span> of daily goal</div>
           </article>
 
-          <article class="card stat-card meals-card">
+          <article class="card stat-card meals-card log-launcher" data-log="meal" role="button" tabindex="0" aria-label="Open meal log">
             <div class="card-label">Meals</div>
             <div class="stat-value" id="mealCount">0</div>
             <div class="stat-meta">Logged today</div>
@@ -55,7 +55,7 @@
             <div class="stat-meta">Sessions complete</div>
           </article>
 
-          <article class="card stat-card weight-card">
+          <article class="card stat-card weight-card log-launcher" data-log="weight" role="button" tabindex="0" aria-label="Open weight log">
             <div class="card-label">Weight</div>
             <div class="stat-value" id="weightValue">195 lb</div>
             <div class="stat-meta">Morning weigh-in</div>
@@ -127,6 +127,7 @@
                 <h3 id="selectedWorkoutLabel">Selected workout</h3>
                 <button type="submit" class="primary-btn compact-btn">Mark done</button>
               </div>
+              <p id="selectedWorkoutStatus" class="workout-status" aria-live="polite"></p>
               <div id="selectedWorkoutItems" class="selected-workout-items"></div>
 
               <div class="add-item-row">
@@ -169,40 +170,19 @@
           </article>
         </section>
 
-        <section class="lists-grid">
-          <article class="card list-card">
-            <div class="list-header">
-              <h2>Meal log</h2>
-              <span id="mealSummary">0 meals</span>
-            </div>
-            <ul id="mealList" class="entry-list"></ul>
-          </article>
-
-          <article class="card list-card">
-            <div class="list-header">
-              <h2>Workout log</h2>
-              <span id="workoutSummary">0 sessions</span>
-            </div>
-            <ul id="workoutList" class="entry-list"></ul>
-          </article>
-
-          <article class="card list-card">
-            <div class="list-header">
-              <h2>Water log</h2>
-              <span id="waterSummary">0 glasses</span>
-            </div>
-            <ul id="waterList" class="entry-list"></ul>
-          </article>
-
-          <article class="card list-card">
-            <div class="list-header">
-              <h2>Weight log</h2>
-              <span id="weightSummary">0 entries</span>
-            </div>
-            <ul id="weightList" class="entry-list"></ul>
-          </article>
-        </section>
       </main>
+
+      <dialog id="visualLogDialog" class="visual-log-dialog">
+        <div class="visual-log-header">
+          <div>
+            <p class="eyebrow accent">History</p>
+            <h2 id="visualLogTitle">Water log</h2>
+          </div>
+          <button type="button" class="nav-btn" id="closeVisualLogBtn" aria-label="Close log">×</button>
+        </div>
+        <p id="visualLogSubtitle" class="visual-log-subtitle"></p>
+        <ul id="visualLogList" class="entry-list visual-log-list"></ul>
+      </dialog>
     </div>
 
     <script src="script.js"></script>

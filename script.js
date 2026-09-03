@@ -168,19 +168,21 @@ const mealForm = document.getElementById('mealForm');
 const workoutForm = document.getElementById('workoutForm');
 const waterForm = document.getElementById('waterForm');
 const weightForm = document.getElementById('weightForm');
-const mealList = document.getElementById('mealList');
-const workoutList = document.getElementById('workoutList');
-const waterList = document.getElementById('waterList');
-const weightList = document.getElementById('weightList');
 const calendarGrid = document.getElementById('calendarGrid');
 const calendarMonthLabel = document.getElementById('calendarMonthLabel');
 const selectedWorkoutLabel = document.getElementById('selectedWorkoutLabel');
+const selectedWorkoutStatus = document.getElementById('selectedWorkoutStatus');
 const selectedWorkoutItems = document.getElementById('selectedWorkoutItems');
 const newExerciseInput = document.getElementById('newExerciseInput');
 const addExerciseBtn = document.getElementById('addExerciseBtn');
 const prevMonthBtn = document.getElementById('prevMonthBtn');
 const nextMonthBtn = document.getElementById('nextMonthBtn');
 const todayButton = document.getElementById('todayButton');
+const visualLogDialog = document.getElementById('visualLogDialog');
+const visualLogTitle = document.getElementById('visualLogTitle');
+const visualLogSubtitle = document.getElementById('visualLogSubtitle');
+const visualLogList = document.getElementById('visualLogList');
+const closeVisualLogBtn = document.getElementById('closeVisualLogBtn');
 
 const elements = {
   waterTotal: document.getElementById('waterTotal'),
@@ -191,10 +193,6 @@ const elements = {
   workoutCount: document.getElementById('workoutCount'),
   caloriesBurned: document.getElementById('caloriesBurned'),
   weightValue: document.getElementById('weightValue'),
-  mealSummary: document.getElementById('mealSummary'),
-  workoutSummary: document.getElementById('workoutSummary'),
-  waterSummary: document.getElementById('waterSummary'),
-  weightSummary: document.getElementById('weightSummary'),
 };
 
 function normalizeCalendarState(calendar) {
@@ -268,6 +266,12 @@ function parseDateKey(dateKey) {
   return new Date(year, month - 1, day);
 }
 
+function isPastDate(dateKey) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return parseDateKey(dateKey) < today;
+}
+
 function formatDate() {
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
   todayDate.textContent = new Date().toLocaleDateString(undefined, options);
@@ -326,10 +330,6 @@ function renderSummary() {
   elements.workoutCount.textContent = workoutCount;
   elements.weightValue.textContent = `${latestWeight} lb`;
   elements.caloriesBurned.textContent = totalWorkoutCalories;
-  elements.mealSummary.textContent = `${mealCount} meal${mealCount === 1 ? '' : 's'}`;
-  elements.workoutSummary.textContent = `${workoutCount} session${workoutCount === 1 ? '' : 's'}`;
-  elements.waterSummary.textContent = `${getTodaysWaterEntries().length} ${getTodaysWaterEntries().length === 1 ? 'entry' : 'entries'}`;
-  elements.weightSummary.textContent = `${state.weights.length} ${state.weights.length === 1 ? 'entry' : 'entries'}`;
 }
 
 function createEntryRow({ name, details, tag, onDelete, kind }) {
@@ -358,111 +358,33 @@ function createEntryRow({ name, details, tag, onDelete, kind }) {
   return li;
 }
 
-function renderMeals() {
-  mealList.innerHTML = '';
+function renderVisualLog(type) {
+  const logConfig = {
+    meal: { title: 'Meal log', subtitle: 'Every completed meal, newest first.', entries: state.meals },
+    water: { title: 'Water log', subtitle: 'Every water entry, newest first.', entries: state.water },
+    weight: { title: 'Weight log', subtitle: 'Your morning weigh-ins, newest first.', entries: state.weights },
+  }[type];
+  const entries = [...logConfig.entries].reverse();
+  visualLogTitle.textContent = logConfig.title;
+  visualLogSubtitle.textContent = logConfig.subtitle;
+  visualLogList.innerHTML = '';
 
-  if (!state.meals.length) {
-    mealList.innerHTML = '<li class="empty-state">No meal check-ins yet.</li>';
-    return;
+  if (!entries.length) {
+    visualLogList.innerHTML = `<li class="empty-state">No ${type === 'meal' ? 'meals' : type === 'water' ? 'water' : 'weigh-ins'} logged yet.</li>`;
+  } else {
+    entries.forEach((entry) => {
+      const item = document.createElement('li');
+      item.className = 'entry-item';
+      const dateText = entry.date ? ` · ${parseDateKey(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : '';
+      const name = type === 'meal' ? `${entry.type} meal complete` : type === 'water' ? formatOunces(entry.amount) : `${entry.value} lb`;
+      const details = type === 'meal' ? 'Completed' : type === 'water' ? 'Logged' : 'Morning weigh-in';
+      const tag = type === 'meal' ? entry.type : type === 'water' ? formatOunces(entry.amount) : 'Morning';
+      item.innerHTML = `<div class="entry-main"><strong>${name}</strong><span>${details}${dateText} at ${entry.time}</span></div><span class="entry-tag">${tag}</span>`;
+      visualLogList.appendChild(item);
+    });
   }
 
-  [...state.meals]
-    .reverse()
-    .forEach((meal) => {
-      const item = createEntryRow({
-        name: `${meal.type} meal complete`,
-        details: `Checked at ${meal.time}`,
-        tag: meal.type,
-        kind: 'meal',
-        onDelete: () => {
-          state.meals = state.meals.filter((entry) => entry.id !== meal.id);
-          saveState();
-          render();
-        },
-      });
-      mealList.appendChild(item);
-    });
-}
-
-function renderWorkouts() {
-  workoutList.innerHTML = '';
-
-  const calendarEntries = Object.values(state.calendar || {});
-  const completedDates = calendarEntries.filter((entry) => entry.completed).length;
-
-  if (!completedDates) {
-    workoutList.innerHTML = '<li class="empty-state">No workouts logged yet.</li>';
-    return;
-  }
-
-  Object.entries(state.calendar || {})
-    .filter(([, entry]) => entry.completed)
-    .reverse()
-    .forEach(([date, workout]) => {
-      const item = createEntryRow({
-        name: workout.workoutName || 'Workout',
-        details: `${new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${workout.exercises.length} items`,
-        tag: 'Done',
-        onDelete: () => {
-          if (state.calendar[date]) {
-            state.calendar[date].completed = false;
-          }
-          saveState();
-          render();
-        },
-      });
-      workoutList.appendChild(item);
-    });
-}
-
-function renderWater() {
-  waterList.innerHTML = '';
-
-  if (!state.water.length) {
-    waterList.innerHTML = '<li class="empty-state">No water logged yet.</li>';
-    return;
-  }
-
-  [...state.water]
-    .reverse()
-    .forEach((entry) => {
-      const item = createEntryRow({
-        name: `${formatOunces(entry.amount)}`,
-        details: `Logged at ${entry.time}`,
-        tag: `${formatOunces(entry.amount)}`,
-        onDelete: () => {
-          state.water = state.water.filter((waterEntry) => waterEntry.id !== entry.id);
-          saveState();
-          render();
-        },
-      });
-      waterList.appendChild(item);
-    });
-}
-
-function renderWeights() {
-  weightList.innerHTML = '';
-
-  if (!state.weights.length) {
-    weightList.innerHTML = '<li class="empty-state">No weigh-ins logged yet.</li>';
-    return;
-  }
-
-  [...state.weights]
-    .reverse()
-    .forEach((entry) => {
-      const item = createEntryRow({
-        name: `${entry.value} lb`,
-        details: `Logged at ${entry.time}`,
-        tag: 'Morning',
-        onDelete: () => {
-          state.weights = state.weights.filter((weightEntry) => weightEntry.id !== entry.id);
-          saveState();
-          render();
-        },
-      });
-      weightList.appendChild(item);
-    });
+  visualLogDialog.showModal();
 }
 
 function ensureCalendarEntry(dateKey) {
@@ -533,10 +455,18 @@ function renderCalendar() {
 function openCalendarDay(dateKey) {
   currentSelectedDate = dateKey;
   const entry = ensureCalendarEntry(dateKey);
+  const readOnly = isPastDate(dateKey);
 
   const displayDate = parseDateKey(dateKey);
-  const labelText = entry.workoutName ? `${displayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${entry.workoutName}` : `${displayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · No workout planned`;
+  const labelText = entry.workoutName
+    ? `${displayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${readOnly ? 'Daily log' : entry.workoutName}`
+    : `${displayDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · No workout planned`;
   selectedWorkoutLabel.textContent = labelText;
+  selectedWorkoutStatus.textContent = readOnly ? 'Past workouts are saved as read-only logs.' : '';
+  selectedWorkoutStatus.hidden = !readOnly;
+  workoutForm.querySelector('button[type="submit"]').disabled = readOnly || !entry.exercises.length;
+  addExerciseBtn.disabled = readOnly;
+  newExerciseInput.disabled = readOnly;
   selectedWorkoutItems.innerHTML = '';
 
   if (!entry.exercises.length) {
@@ -554,6 +484,7 @@ function openCalendarDay(dateKey) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = Boolean(exercise.completed);
+    checkbox.disabled = readOnly;
 
     const text = document.createElement('span');
     text.textContent = exercise.label;
@@ -563,8 +494,10 @@ function openCalendarDay(dateKey) {
     weightInput.placeholder = 'lb';
     weightInput.value = exercise.weight || '';
     weightInput.className = 'exercise-weight-input';
+    weightInput.disabled = readOnly;
 
     checkbox.addEventListener('change', () => {
+      if (readOnly) return;
       exercise.completed = checkbox.checked;
       entry.completed = entry.exercises.every((item) => item.completed);
       state.calendar[dateKey] = entry;
@@ -573,6 +506,7 @@ function openCalendarDay(dateKey) {
     });
 
     weightInput.addEventListener('input', () => {
+      if (readOnly) return;
       exercise.weight = weightInput.value;
       state.calendar[dateKey] = entry;
       saveState();
@@ -586,10 +520,6 @@ function openCalendarDay(dateKey) {
 
 function render() {
   renderSummary();
-  renderMeals();
-  renderWorkouts();
-  renderWater();
-  renderWeights();
   renderCalendar();
 }
 
@@ -603,6 +533,7 @@ document.querySelectorAll('.meal-check-btn').forEach((button) => {
       name: `${type} meal`,
       calories: 0,
       type,
+      date: formatDateKey(new Date()),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
 
@@ -613,6 +544,7 @@ document.querySelectorAll('.meal-check-btn').forEach((button) => {
 
 workoutForm.addEventListener('submit', (event) => {
   event.preventDefault();
+  if (isPastDate(currentSelectedDate)) return;
 
   const entry = ensureCalendarEntry(currentSelectedDate);
   entry.completed = true;
@@ -623,6 +555,8 @@ workoutForm.addEventListener('submit', (event) => {
 });
 
 addExerciseBtn.addEventListener('click', () => {
+  if (isPastDate(currentSelectedDate)) return;
+
   const text = newExerciseInput.value.trim();
   if (!text) return;
 
@@ -672,11 +606,29 @@ weightForm.addEventListener('submit', (event) => {
   state.weights.push({
     id: crypto.randomUUID(),
     value,
+    date: formatDateKey(new Date()),
     time: '05:30',
   });
 
   saveState();
   render();
+});
+
+document.querySelectorAll('.log-launcher').forEach((launcher) => {
+  const openLog = () => renderVisualLog(launcher.dataset.log);
+  launcher.addEventListener('click', openLog);
+  launcher.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openLog();
+    }
+  });
+});
+
+closeVisualLogBtn.addEventListener('click', () => visualLogDialog.close());
+
+visualLogDialog.addEventListener('click', (event) => {
+  if (event.target === visualLogDialog) visualLogDialog.close();
 });
 
 document.querySelectorAll('.quick-water').forEach((button) => {

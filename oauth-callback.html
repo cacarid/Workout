@@ -80,6 +80,7 @@
     </main>
 
     <script>
+      const whoopApiBaseUrl = 'https://workout-tau-lake.vercel.app';
       const params = new URLSearchParams(window.location.search);
       const error = params.get('error');
       const message = document.getElementById('message');
@@ -89,8 +90,23 @@
         message.textContent = params.get('error_description') || 'WHOOP did not authorize the connection.';
         message.className = 'status error';
       } else if (params.has('code')) {
-        message.textContent = 'Authorization received. The connection still needs to be completed by the app integration.';
-        message.className = 'status';
+        message.textContent = 'Completing the WHOOP connection...';
+        fetch(`${whoopApiBaseUrl}/api/whoop/token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: params.get('code'), state: params.get('state') }),
+        })
+          .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'WHOOP authorization failed.');
+            localStorage.setItem('whoopTokens', JSON.stringify(data));
+            message.textContent = 'WHOOP is connected. You can return to the Workout Tracker.';
+            message.className = 'status';
+          })
+          .catch((connectionError) => {
+            message.textContent = connectionError.message;
+            message.className = 'status error';
+          });
       } else {
         message.textContent = 'No WHOOP authorization response was received.';
       }

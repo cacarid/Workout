@@ -21,6 +21,20 @@ Then open:
 http://localhost:8000
 ```
 
+## WHOOP integration setup
+
+The WHOOP OAuth backend is designed for Vercel serverless functions. GitHub Pages cannot safely store `WHOOP_CLIENT_SECRET`.
+
+1. Import this repository into Vercel.
+2. Add the variables from `.env.example` in Vercel project settings. Use a newly rotated WHOOP client secret.
+3. In the WHOOP developer portal, set the redirect URI to:
+
+	`https://cacarid.github.io/Workout/oauth-callback.html`
+
+4. Deploy the Vercel project. Its API base URL will be used by the frontend OAuth button.
+
+Never commit `.env` files or client secrets to the repository.
+
 ## Features
 
 - Add meals with calories and type

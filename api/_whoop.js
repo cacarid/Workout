@@ -30,7 +30,8 @@ function verifyState(state) {
 }
 
 function allowCors(response) {
-  response.setHeader('Access-Control-Allow-Origin', process.env.APP_URL);
+  const appOrigin = process.env.WHOOP_ALLOWED_ORIGIN || new URL(process.env.APP_URL).origin;
+  response.setHeader('Access-Control-Allow-Origin', appOrigin);
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 }

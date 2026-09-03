@@ -184,6 +184,7 @@ const visualLogSubtitle = document.getElementById('visualLogSubtitle');
 const visualLogList = document.getElementById('visualLogList');
 const closeVisualLogBtn = document.getElementById('closeVisualLogBtn');
 const connectWhoopBtn = document.getElementById('connectWhoopBtn');
+const refreshPageBtn = document.getElementById('refreshPageBtn');
 const whoopApiBaseUrl = 'https://workout-tau-lake.vercel.app';
 
 const elements = {
@@ -629,6 +630,10 @@ document.querySelectorAll('.log-launcher').forEach((launcher) => {
 
 connectWhoopBtn.addEventListener('click', () => {
   window.location.href = `${whoopApiBaseUrl}/api/whoop/authorize`;
+});
+
+refreshPageBtn.addEventListener('click', () => {
+  window.location.reload();
 });
 
 closeVisualLogBtn.addEventListener('click', () => visualLogDialog.close());

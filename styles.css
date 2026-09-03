@@ -60,6 +60,16 @@ select {
   gap: 8px;
 }
 
+.app-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.refresh-btn {
+  padding: 8px 12px;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--muted);

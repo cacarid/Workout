@@ -42,6 +42,10 @@ module.exports = async (request, response) => {
       && cycleEnd >= dayStart;
   });
 
-  const kilojoules = dailyCycles.reduce((total, cycle) => total + Number(cycle.score && cycle.score.kilojoule || 0), 0);
-  response.status(200).json({ calories: Math.round(kilojoules * 0.239006), cycles: dailyCycles });
+  const currentCycle = dailyCycles.find((cycle) => !cycle.end) || dailyCycles[0];
+  const kilojoules = Number(currentCycle && currentCycle.score && currentCycle.score.kilojoule || 0);
+  response.status(200).json({
+    calories: Math.round(kilojoules * 0.239006),
+    cycles: currentCycle ? [currentCycle] : [],
+  });
 };

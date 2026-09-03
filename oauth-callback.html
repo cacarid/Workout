@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WHOOP Connection | Workout Tracker</title>
+    <style>
+      :root {
+        --text: #162033;
+        --muted: #667085;
+        --surface: #ffffff;
+        --border: #dfe8f5;
+        --primary: #2357d0;
+        --background: #f4f7fb;
+        --success: #148a7d;
+        --error: #c0395b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        margin: 0;
+        padding: 20px;
+        color: var(--text);
+        background: linear-gradient(135deg, #fff4f7 0%, var(--background) 50%, #eef5ff 100%);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      main {
+        width: min(100%, 520px);
+        padding: 32px;
+        text-align: center;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 14px 30px rgba(17, 41, 74, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        line-height: 1.2;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .status {
+        color: var(--success);
+        font-weight: 700;
+      }
+
+      .status.error {
+        color: var(--error);
+      }
+
+      a {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 12px 18px;
+        color: white;
+        background: var(--primary);
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 id="title">WHOOP connection</h1>
+      <p id="message">Checking the authorization response...</p>
+      <a href="./index.html">Return to Workout Tracker</a>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      const message = document.getElementById('message');
+
+      if (error) {
+        document.getElementById('title').textContent = 'WHOOP connection canceled';
+        message.textContent = params.get('error_description') || 'WHOOP did not authorize the connection.';
+        message.className = 'status error';
+      } else if (params.has('code')) {
+        message.textContent = 'Authorization received. The connection still needs to be completed by the app integration.';
+        message.className = 'status';
+      } else {
+        message.textContent = 'No WHOOP authorization response was received.';
+      }
+    </script>
+  </body>
+</html>

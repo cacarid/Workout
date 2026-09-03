@@ -35,12 +35,21 @@ module.exports = async (request, response) => {
 
   const dailyWorkouts = (workoutsData.records || []).filter((workout) => {
     const workoutStart = new Date(workout.start);
-    return Number.isFinite(workoutStart.getTime()) && workoutStart.getTime() >= dayStart && workoutStart.getTime() < dayEnd;
+    const workoutEnd = new Date(workout.end || workout.start);
+    const startTime = workoutStart.getTime();
+    const endTime = workoutEnd.getTime();
+    return Number.isFinite(startTime)
+      && Number.isFinite(endTime)
+      && startTime < dayEnd
+      && endTime >= dayStart;
   });
 
   const calories = dailyWorkouts.reduce((total, workout) => {
+    const score = workout.score || {};
+    const directCalories = Number(score.calories || score.calorie);
+    if (Number.isFinite(directCalories)) return total + directCalories;
 
-    const kilojoules = Number(workout.score && workout.score.kilojoule);
+    const kilojoules = Number(score.kilojoule);
     return total + (Number.isFinite(kilojoules) ? kilojoules * 0.239006 : 0);
   }, 0);
 

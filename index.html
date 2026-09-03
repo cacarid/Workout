@@ -124,20 +124,6 @@
               <span>Sat</span>
             </div>
             <div id="calendarGrid" class="calendar-grid"></div>
-
-            <form id="workoutForm" class="workout-check-form">
-              <div class="selected-workout-header">
-                <h3 id="selectedWorkoutLabel">Selected workout</h3>
-                <button type="submit" class="primary-btn compact-btn">Mark done</button>
-              </div>
-              <p id="selectedWorkoutStatus" class="workout-status" aria-live="polite"></p>
-              <div id="selectedWorkoutItems" class="selected-workout-items"></div>
-
-              <div class="add-item-row">
-                <input id="newExerciseInput" type="text" placeholder="Add workout item" />
-                <button type="button" id="addExerciseBtn" class="secondary-btn compact-btn">Add item</button>
-              </div>
-            </form>
           </article>
 
           <article class="card form-card water-card-form">
@@ -189,6 +175,28 @@
         </div>
         <p id="visualLogSubtitle" class="visual-log-subtitle"></p>
         <ul id="visualLogList" class="entry-list visual-log-list"></ul>
+      </dialog>
+
+      <dialog id="workoutDialog" class="visual-log-dialog workout-dialog">
+        <div class="visual-log-header">
+          <div>
+            <p class="eyebrow accent">Calendar workout</p>
+            <h2 id="selectedWorkoutLabel">Selected workout</h2>
+          </div>
+          <button type="button" class="nav-btn" id="closeWorkoutBtn" aria-label="Close workout">×</button>
+        </div>
+        <form id="workoutForm" class="workout-check-form">
+          <p id="selectedWorkoutStatus" class="workout-status" aria-live="polite"></p>
+          <div id="selectedWorkoutItems" class="selected-workout-items"></div>
+
+          <div class="selected-workout-actions">
+            <button type="submit" class="primary-btn compact-btn">Mark done</button>
+            <div class="add-item-row">
+              <input id="newExerciseInput" type="text" placeholder="Add workout item" />
+              <button type="button" id="addExerciseBtn" class="secondary-btn compact-btn">Add item</button>
+            </div>
+          </div>
+        </form>
       </dialog>
     </div>
 

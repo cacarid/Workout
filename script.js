@@ -183,6 +183,8 @@ const visualLogTitle = document.getElementById('visualLogTitle');
 const visualLogSubtitle = document.getElementById('visualLogSubtitle');
 const visualLogList = document.getElementById('visualLogList');
 const closeVisualLogBtn = document.getElementById('closeVisualLogBtn');
+const workoutDialog = document.getElementById('workoutDialog');
+const closeWorkoutBtn = document.getElementById('closeWorkoutBtn');
 const connectWhoopBtn = document.getElementById('connectWhoopBtn');
 const refreshPageBtn = document.getElementById('refreshPageBtn');
 const whoopApiBaseUrl = 'https://workout-tau-lake.vercel.app';
@@ -471,7 +473,7 @@ function renderCalendar() {
     cell.innerHTML = `<span>${day}</span>`;
     cell.addEventListener('click', () => {
       currentSelectedDate = dateKey;
-      openCalendarDay(dateKey);
+      openCalendarDay(dateKey, true);
     });
     calendarGrid.appendChild(cell);
   }
@@ -479,7 +481,7 @@ function renderCalendar() {
   openCalendarDay(currentSelectedDate || formatDateKey(new Date()));
 }
 
-function openCalendarDay(dateKey) {
+function openCalendarDay(dateKey, shouldOpenDialog = false) {
   currentSelectedDate = dateKey;
   const entry = ensureCalendarEntry(dateKey);
   const readOnly = isPastDate(dateKey);
@@ -495,6 +497,7 @@ function openCalendarDay(dateKey) {
   addExerciseBtn.disabled = readOnly;
   newExerciseInput.disabled = readOnly;
   selectedWorkoutItems.innerHTML = '';
+  if (shouldOpenDialog) workoutDialog.showModal();
 
   if (!entry.exercises.length) {
     selectedWorkoutItems.innerHTML = '<p class="empty-state small">No workout planned for this day.</p>';
@@ -664,6 +667,12 @@ closeVisualLogBtn.addEventListener('click', () => visualLogDialog.close());
 
 visualLogDialog.addEventListener('click', (event) => {
   if (event.target === visualLogDialog) visualLogDialog.close();
+});
+
+closeWorkoutBtn.addEventListener('click', () => workoutDialog.close());
+
+workoutDialog.addEventListener('click', (event) => {
+  if (event.target === workoutDialog) workoutDialog.close();
 });
 
 document.querySelectorAll('.quick-water').forEach((button) => {

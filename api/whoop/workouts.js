@@ -12,7 +12,7 @@ module.exports = async (request, response) => {
     return;
   }
 
-  const { accessToken } = request.body || {};
+  const { accessToken, dateKey, timezoneOffsetMinutes = 0 } = request.body || {};
   if (!accessToken) {
     response.status(401).json({ error: 'WHOOP is not connected' });
     return;
@@ -29,6 +29,11 @@ module.exports = async (request, response) => {
   }
 
   const calories = (workoutsData.records || []).reduce((total, workout) => {
+    const workoutStart = new Date(workout.start);
+    const localWorkoutStart = new Date(workoutStart.getTime() - Number(timezoneOffsetMinutes) * 60 * 1000);
+    const workoutDateKey = `${localWorkoutStart.getUTCFullYear()}-${String(localWorkoutStart.getUTCMonth() + 1).padStart(2, '0')}-${String(localWorkoutStart.getUTCDate()).padStart(2, '0')}`;
+    if (dateKey && workoutDateKey !== dateKey) return total;
+
     const kilojoules = Number(workout.score && workout.score.kilojoule);
     return total + (Number.isFinite(kilojoules) ? kilojoules * 0.239006 : 0);
   }, 0);

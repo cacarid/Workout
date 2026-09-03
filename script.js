@@ -344,7 +344,11 @@ async function loadWhoopCalories() {
     const response = await fetch(`${whoopApiBaseUrl}/api/whoop/workouts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: tokens.access_token }),
+      body: JSON.stringify({
+        accessToken: tokens.access_token,
+        dateKey: formatDateKey(new Date()),
+        timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+      }),
     });
     if (!response.ok) return;
 

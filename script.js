@@ -335,6 +335,26 @@ function renderSummary() {
   elements.caloriesBurned.textContent = totalWorkoutCalories;
 }
 
+async function loadWhoopCalories() {
+  const savedTokens = localStorage.getItem('whoopTokens');
+  if (!savedTokens) return;
+
+  try {
+    const tokens = JSON.parse(savedTokens);
+    const response = await fetch(`${whoopApiBaseUrl}/api/whoop/workouts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: tokens.access_token }),
+    });
+    if (!response.ok) return;
+
+    const data = await response.json();
+    elements.caloriesBurned.textContent = data.calories;
+  } catch {
+    // Keep the local calorie total when WHOOP data is unavailable.
+  }
+}
+
 function createEntryRow({ name, details, tag, onDelete, kind }) {
   const li = document.createElement('li');
   li.className = 'entry-item';
@@ -677,3 +697,4 @@ todayButton.addEventListener('click', () => {
 formatDate();
 updateWeddingCountdown();
 render();
+loadWhoopCalories();

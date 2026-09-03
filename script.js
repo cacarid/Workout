@@ -341,7 +341,7 @@ async function loadWhoopCalories() {
 
   try {
     const tokens = JSON.parse(savedTokens);
-    const response = await fetch(`${whoopApiBaseUrl}/api/whoop/workouts`, {
+    const response = await fetch(`${whoopApiBaseUrl}/api/whoop/cycles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

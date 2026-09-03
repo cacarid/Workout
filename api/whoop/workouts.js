@@ -13,10 +13,15 @@ module.exports = async (request, response) => {
   }
 
   const { accessToken, dateKey, timezoneOffsetMinutes = 0 } = request.body || {};
-  if (!accessToken) {
+  if (!accessToken || !dateKey) {
     response.status(401).json({ error: 'WHOOP is not connected' });
     return;
   }
+
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const offsetMs = Number(timezoneOffsetMinutes) * 60 * 1000;
+  const dayStart = Date.UTC(year, month - 1, day) + offsetMs;
+  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
 
   const workoutsResponse = await fetch('https://api.prod.whoop.com/developer/v2/activity/workout?limit=25', {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -28,15 +33,16 @@ module.exports = async (request, response) => {
     return;
   }
 
-  const calories = (workoutsData.records || []).reduce((total, workout) => {
+  const dailyWorkouts = (workoutsData.records || []).filter((workout) => {
     const workoutStart = new Date(workout.start);
-    const localWorkoutStart = new Date(workoutStart.getTime() - Number(timezoneOffsetMinutes) * 60 * 1000);
-    const workoutDateKey = `${localWorkoutStart.getUTCFullYear()}-${String(localWorkoutStart.getUTCMonth() + 1).padStart(2, '0')}-${String(localWorkoutStart.getUTCDate()).padStart(2, '0')}`;
-    if (dateKey && workoutDateKey !== dateKey) return total;
+    return Number.isFinite(workoutStart.getTime()) && workoutStart.getTime() >= dayStart && workoutStart.getTime() < dayEnd;
+  });
+
+  const calories = dailyWorkouts.reduce((total, workout) => {
 
     const kilojoules = Number(workout.score && workout.score.kilojoule);
     return total + (Number.isFinite(kilojoules) ? kilojoules * 0.239006 : 0);
   }, 0);
 
-  response.status(200).json({ calories: Math.round(calories), workouts: workoutsData.records || [] });
+  response.status(200).json({ calories: Math.round(calories), workouts: dailyWorkouts });
 };

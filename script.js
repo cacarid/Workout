@@ -645,7 +645,13 @@ weightForm.addEventListener('submit', (event) => {
 });
 
 document.querySelectorAll('.log-launcher').forEach((launcher) => {
-  const openLog = () => renderVisualLog(launcher.dataset.log);
+  const openLog = () => {
+    if (launcher.dataset.log === 'weight') {
+      launcher.classList.add('weight-revealed');
+      launcher.setAttribute('aria-label', 'Weight revealed. Open weight log');
+    }
+    renderVisualLog(launcher.dataset.log);
+  };
   launcher.addEventListener('click', openLog);
   launcher.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {

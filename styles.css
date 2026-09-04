@@ -184,6 +184,11 @@ h1 {
   outline: none;
 }
 
+.weight-card:not(.weight-revealed) #weightValue {
+  filter: blur(8px);
+  user-select: none;
+}
+
 .stat-card::after {
   content: "";
   position: absolute;

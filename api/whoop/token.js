@@ -31,5 +31,13 @@ module.exports = async (request, response) => {
   });
 
   const tokenData = await tokenResponse.json();
-  response.status(tokenResponse.status).json(tokenData);
+  if (!tokenResponse.ok) {
+    response.status(tokenResponse.status).json(tokenData);
+    return;
+  }
+
+  if (tokenData.refresh_token) {
+    response.setHeader('Set-Cookie', `whoop_refresh_token=${encodeURIComponent(tokenData.refresh_token)}; Max-Age=31536000; Path=/; HttpOnly; Secure; SameSite=None`);
+  }
+  response.status(200).json({ connected: true });
 };

@@ -94,12 +94,12 @@
         fetch(`${whoopApiBaseUrl}/api/whoop/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ code: params.get('code'), state: params.get('state') }),
         })
           .then(async (response) => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'WHOOP authorization failed.');
-            localStorage.setItem('whoopTokens', JSON.stringify(data));
             message.textContent = 'WHOOP is connected. You can return to the Workout Tracker.';
             message.className = 'status';
           })

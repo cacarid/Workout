@@ -1,4 +1,4 @@
-const { allowCors } = require('../_whoop');
+const { allowCors, getCookie, whoopTokenUrl } = require('../_whoop');
 
 module.exports = async (request, response) => {
   allowCors(response);
@@ -12,10 +12,36 @@ module.exports = async (request, response) => {
     return;
   }
 
-  const { accessToken, dateKey, timezoneOffsetMinutes = 0 } = request.body || {};
-  if (!accessToken || !dateKey) {
+  const { dateKey, timezoneOffsetMinutes = 0 } = request.body || {};
+  if (!dateKey) {
     response.status(401).json({ error: 'WHOOP is not connected' });
     return;
+  }
+
+  const refreshToken = getCookie(request, 'whoop_refresh_token');
+  if (!refreshToken) {
+    response.status(401).json({ error: 'WHOOP is not connected' });
+    return;
+  }
+
+  const tokenResponse = await fetch(whoopTokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: process.env.WHOOP_CLIENT_ID,
+      client_secret: process.env.WHOOP_CLIENT_SECRET,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    }),
+  });
+  const tokenData = await tokenResponse.json();
+  if (!tokenResponse.ok) {
+    response.status(tokenResponse.status).json(tokenData);
+    return;
+  }
+
+  if (tokenData.refresh_token) {
+    response.setHeader('Set-Cookie', `whoop_refresh_token=${encodeURIComponent(tokenData.refresh_token)}; Max-Age=31536000; Path=/; HttpOnly; Secure; SameSite=None`);
   }
 
   const [year, month, day] = dateKey.split('-').map(Number);
@@ -24,7 +50,7 @@ module.exports = async (request, response) => {
   const dayEnd = dayStart + 24 * 60 * 60 * 1000;
 
   const cyclesResponse = await fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=25', {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { Authorization: `Bearer ${tokenData.access_token}` },
   });
   const cyclesData = await cyclesResponse.json();
 

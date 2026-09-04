@@ -34,6 +34,13 @@ function allowCors(response) {
   response.setHeader('Access-Control-Allow-Origin', appOrigin);
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.setHeader('Access-Control-Allow-Credentials', 'true');
+}
+
+function getCookie(request, name) {
+  const cookies = String(request.headers.cookie || '').split(';');
+  const cookie = cookies.find((item) => item.trim().startsWith(`${name}=`));
+  return cookie ? decodeURIComponent(cookie.trim().slice(name.length + 1)) : '';
 }
 
 module.exports = {
@@ -44,4 +51,5 @@ module.exports = {
   whoopAuthorizeUrl,
   whoopScopes,
   whoopTokenUrl,
+  getCookie,
 };

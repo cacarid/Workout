@@ -63,7 +63,9 @@ module.exports = async (request, response) => {
     return;
   }
 
-  const dailyCycles = (cyclesData.records || []).filter((cycle) => {
+  const records = cyclesData.records || [];
+  const openCycle = records.find((cycle) => !cycle.end);
+  const dailyCycles = records.filter((cycle) => {
     const cycleStart = new Date(cycle.start).getTime();
     const cycleEnd = new Date(cycle.end || cycle.start).getTime();
     return Number.isFinite(cycleStart)
@@ -72,7 +74,7 @@ module.exports = async (request, response) => {
       && cycleEnd >= dayStart;
   });
 
-  const currentCycle = dailyCycles.find((cycle) => !cycle.end) || dailyCycles[0];
+  const currentCycle = openCycle || dailyCycles[0];
   const kilojoules = Number(currentCycle && currentCycle.score && currentCycle.score.kilojoule || 0);
   response.status(200).json({
     calories: Math.round(kilojoules * 0.239006),

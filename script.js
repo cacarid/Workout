@@ -338,12 +338,16 @@ function renderSummary() {
 }
 
 async function loadWhoopCalories() {
+  const savedTokens = localStorage.getItem('whoopTokens');
+
   try {
+    const tokens = savedTokens ? JSON.parse(savedTokens) : {};
     const response = await fetch(`${whoopApiBaseUrl}/api/whoop/cycles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
+        accessToken: tokens.access_token,
         dateKey: formatDateKey(new Date()),
         timezoneOffsetMinutes: new Date().getTimezoneOffset(),
       }),

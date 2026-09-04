@@ -100,6 +100,7 @@
           .then(async (response) => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'WHOOP authorization failed.');
+            localStorage.setItem('whoopTokens', JSON.stringify(data));
             message.textContent = 'WHOOP is connected. You can return to the Workout Tracker.';
             message.className = 'status';
           })

@@ -39,5 +39,9 @@ module.exports = async (request, response) => {
   if (tokenData.refresh_token) {
     response.setHeader('Set-Cookie', `whoop_refresh_token=${encodeURIComponent(tokenData.refresh_token)}; Max-Age=31536000; Path=/; HttpOnly; Secure; SameSite=None`);
   }
-  response.status(200).json({ connected: true });
+  response.status(200).json({
+    connected: true,
+    access_token: tokenData.access_token,
+    expires_in: tokenData.expires_in,
+  });
 };

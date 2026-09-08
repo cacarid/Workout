@@ -64,8 +64,8 @@ const day4WorkoutPlan = {
   ],
 };
 
-const day5WorkoutPlan = {
-  name: 'Day 5',
+const day8WorkoutPlan = {
+  name: 'Day 8',
   exercises: [
     { id: 'day5-warmup', label: 'Treadmill warm-up — 5 min (walk 1 min, easy jog 3 min, walk 1 min)', completed: false, weight: '' },
     { id: 'day5-leg-press', label: 'Leg press — 4 × 10', completed: false, weight: '' },
@@ -79,8 +79,8 @@ const day5WorkoutPlan = {
   ],
 };
 
-const day6WorkoutPlan = {
-  name: 'Day 6',
+const day9WorkoutPlan = {
+  name: 'Day 9',
   exercises: [
     { id: 'day6-warmup', label: 'Treadmill warm-up — 8 min (walk 2 min, jog 4 min, walk 1 min, jog 1 min)', completed: false, weight: '' },
     { id: 'day6-run-intervals', label: 'Run intervals — 10 rounds (run 1 min at RPE 8–9; walk/jog 1 min)', completed: false, weight: '' },
@@ -113,11 +113,11 @@ function getPlannedWorkoutForDate(date) {
   }
 
   if (dateKey === '2026-09-08') {
-    return day5WorkoutPlan;
+    return day8WorkoutPlan;
   }
 
   if (dateKey === '2026-09-09') {
-    return day6WorkoutPlan;
+    return day9WorkoutPlan;
   }
 
   return null;
@@ -186,14 +186,14 @@ const defaultState = {
       date: formatDateKey(new Date('2026-09-04T00:00:00')),
     },
     [formatDateKey(new Date('2026-09-08T00:00:00'))]: {
-      workoutName: day5WorkoutPlan.name,
-      exercises: day5WorkoutPlan.exercises.map(normalizeExercise),
+      workoutName: day8WorkoutPlan.name,
+      exercises: day8WorkoutPlan.exercises.map(normalizeExercise),
       completed: false,
       date: formatDateKey(new Date('2026-09-08T00:00:00')),
     },
     [formatDateKey(new Date('2026-09-09T00:00:00'))]: {
-      workoutName: day6WorkoutPlan.name,
-      exercises: day6WorkoutPlan.exercises.map(normalizeExercise),
+      workoutName: day9WorkoutPlan.name,
+      exercises: day9WorkoutPlan.exercises.map(normalizeExercise),
       completed: false,
       date: formatDateKey(new Date('2026-09-09T00:00:00')),
     },

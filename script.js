@@ -64,6 +64,35 @@ const day4WorkoutPlan = {
   ],
 };
 
+const day5WorkoutPlan = {
+  name: 'Day 5',
+  exercises: [
+    { id: 'day5-warmup', label: 'Treadmill warm-up — 5 min (walk 1 min, easy jog 3 min, walk 1 min)', completed: false, weight: '' },
+    { id: 'day5-leg-press', label: 'Leg press — 4 × 10', completed: false, weight: '' },
+    { id: 'day5-rdl', label: 'Dumbbell Romanian deadlift — 4 × 10', completed: false, weight: '' },
+    { id: 'day5-walking-lunges', label: 'Walking lunges — 3 × 12 per leg', completed: false, weight: '' },
+    { id: 'day5-machine-chest-press', label: 'Machine chest press — 4 × 10', completed: false, weight: '' },
+    { id: 'day5-incline-db-press', label: 'Incline dumbbell press — 3 × 10–12', completed: false, weight: '' },
+    { id: 'day5-seated-cable-row', label: 'Seated cable row — 3 × 12', completed: false, weight: '' },
+    { id: 'day5-core-circuit', label: 'Core circuit — 3 rounds (cable crunch 15, knee raise 12, plank 45 sec)', completed: false, weight: '' },
+    { id: 'day5-treadmill-finish', label: 'Treadmill finish — 7 rounds (run 1 min hard / walk 1 min)', completed: false, weight: '' },
+  ],
+};
+
+const day6WorkoutPlan = {
+  name: 'Day 6',
+  exercises: [
+    { id: 'day6-warmup', label: 'Treadmill warm-up — 8 min (walk 2 min, jog 4 min, walk 1 min, jog 1 min)', completed: false, weight: '' },
+    { id: 'day6-run-intervals', label: 'Run intervals — 10 rounds (run 1 min at RPE 8–9; walk/jog 1 min)', completed: false, weight: '' },
+    { id: 'day6-easy-incline', label: 'Easy incline walk — 5 min (only if legs feel good)', completed: false, weight: '' },
+    { id: 'day6-cable-crunch', label: 'Cable crunch — 4 × 12–15', completed: false, weight: '' },
+    { id: 'day6-knee-raises', label: 'Captain’s-chair knee raises — 3 × 12', completed: false, weight: '' },
+    { id: 'day6-pallof-press', label: 'Pallof press — 3 × 12/side', completed: false, weight: '' },
+    { id: 'day6-side-plank', label: 'Side plank — 2 × 30–45 sec/side', completed: false, weight: '' },
+    { id: 'day6-cooldown', label: 'Cooldown walk — 5 min easy', completed: false, weight: '' },
+  ],
+};
+
 function getPlannedWorkoutForDate(date) {
   const dateKey = formatDateKey(typeof date === 'string' ? parseDateKey(date) : new Date(date));
 
@@ -81,6 +110,14 @@ function getPlannedWorkoutForDate(date) {
 
   if (dateKey === '2026-09-04') {
     return day4WorkoutPlan;
+  }
+
+  if (dateKey === '2026-09-08') {
+    return day5WorkoutPlan;
+  }
+
+  if (dateKey === '2026-09-09') {
+    return day6WorkoutPlan;
   }
 
   return null;
@@ -148,6 +185,18 @@ const defaultState = {
       completed: false,
       date: formatDateKey(new Date('2026-09-04T00:00:00')),
     },
+    [formatDateKey(new Date('2026-09-08T00:00:00'))]: {
+      workoutName: day5WorkoutPlan.name,
+      exercises: day5WorkoutPlan.exercises.map(normalizeExercise),
+      completed: false,
+      date: formatDateKey(new Date('2026-09-08T00:00:00')),
+    },
+    [formatDateKey(new Date('2026-09-09T00:00:00'))]: {
+      workoutName: day6WorkoutPlan.name,
+      exercises: day6WorkoutPlan.exercises.map(normalizeExercise),
+      completed: false,
+      date: formatDateKey(new Date('2026-09-09T00:00:00')),
+    },
   },
 };
 
@@ -202,7 +251,7 @@ const elements = {
 
 function normalizeCalendarState(calendar) {
   const normalized = {};
-  const planDates = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04'];
+  const planDates = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-08', '2026-09-09'];
 
   planDates.forEach((dateKey) => {
     const existing = calendar && calendar[dateKey];
